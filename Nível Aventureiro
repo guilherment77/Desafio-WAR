@@ -1,0 +1,139 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define NUM_TERRITORIOS 5
+#define TAM_NOME 50
+#define TAM_COR 20
+
+typedef struct {
+    char nome[TAM_NOME];
+    char corExercito[TAM_COR];
+    int numeroTropas;
+} Territorio;
+
+void limparBufferEntrada();
+void cadastrarTerritorios(Territorio *mapa);
+void exibirMapa(const Territorio *mapa);
+void simularAtaque(Territorio *mapa);
+
+int main() {
+
+    srand(time(NULL));
+
+    Territorio *mapa =
+        (Territorio *) calloc(NUM_TERRITORIOS, sizeof(Territorio));
+
+    if (mapa == NULL) {
+        printf("Erro ao alocar memória!\n");
+        return 1;
+    }
+
+    cadastrarTerritorios(mapa);
+
+    printf("\n=== MAPA INICIAL ===\n");
+    exibirMapa(mapa);
+
+    simularAtaque(mapa);
+
+    printf("\n=== MAPA APÓS A BATALHA ===\n");
+    exibirMapa(mapa);
+
+    free(mapa);
+
+    return 0;
+}
+
+void limparBufferEntrada() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
+void cadastrarTerritorios(Territorio *mapa) {
+
+    for (int i = 0; i < NUM_TERRITORIOS; i++) {
+
+        printf("\nTerritório %d\n", i + 1);
+
+        printf("Nome: ");
+        fgets(mapa[i].nome, TAM_NOME, stdin);
+        mapa[i].nome[strcspn(mapa[i].nome, "\n")] = '\0';
+
+        printf("Cor do Exército: ");
+        fgets(mapa[i].corExercito, TAM_COR, stdin);
+        mapa[i].corExercito[strcspn(mapa[i].corExercito, "\n")] = '\0';
+
+        printf("Número de Tropas: ");
+        scanf("%d", &mapa[i].numeroTropas);
+
+        limparBufferEntrada();
+    }
+}
+
+void exibirMapa(const Territorio *mapa) {
+
+    printf("\n-----------------------------------\n");
+
+    for (int i = 0; i < NUM_TERRITORIOS; i++) {
+
+        printf("\n[%d] %s\n", i + 1, mapa[i].nome);
+        printf("Exército: %s\n", mapa[i].corExercito);
+        printf("Tropas: %d\n", mapa[i].numeroTropas);
+    }
+
+    printf("\n-----------------------------------\n");
+}
+
+void simularAtaque(Territorio *mapa) {
+
+    int atacante, defensor;
+
+    printf("\n=== FASE DE ATAQUE ===\n");
+
+    printf("Escolha território atacante (1-5): ");
+    scanf("%d", &atacante);
+
+    printf("Escolha território defensor (1-5): ");
+    scanf("%d", &defensor);
+
+    atacante--;
+    defensor--;
+
+    if (atacante < 0 || atacante >= NUM_TERRITORIOS ||
+        defensor < 0 || defensor >= NUM_TERRITORIOS ||
+        atacante == defensor) {
+
+        printf("Territórios inválidos!\n");
+        return;
+    }
+
+    int dadoAtaque = rand() % 6 + 1;
+    int dadoDefesa = rand() % 6 + 1;
+
+    printf("\nDado Ataque: %d\n", dadoAtaque);
+    printf("Dado Defesa: %d\n", dadoDefesa);
+
+    if (dadoAtaque >= dadoDefesa) {
+
+        printf("\nAtacante venceu!\n");
+
+        mapa[defensor].numeroTropas--;
+
+        if (mapa[defensor].numeroTropas <= 0) {
+
+            printf("Território conquistado!\n");
+
+            strcpy(
+                mapa[defensor].corExercito,
+                mapa[atacante].corExercito
+            );
+
+            mapa[defensor].numeroTropas = 1;
+        }
+    }
+    else {
+
+        printf("\nDefensor resistiu!\n");
+    }
+}
